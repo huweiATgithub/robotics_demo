@@ -3,16 +3,15 @@ from typing import Optional
 
 import numpy as np
 import torch
-
-
 from pydrake.geometry import Meshcat, MeshcatVisualizer
 from pydrake.systems.framework import DiagramBuilder
 
 from robotics_demo.actors import PositionSliderManager, ButtonActor
 from robotics_demo.configs import ModelDefinitionConfig
+from robotics_demo.network import UVNetInDeptCombined
 from robotics_demo.robot import Manipulator, ManipulatorDynamics
 from robotics_demo.utils import setup_drake_meshcat_camera
-from robotics_demo.network import UVNetInDeptCombined
+
 
 class StageController:
     def __init__(self, enter, loop, exi):
@@ -132,7 +131,9 @@ class Demo:
         self.n_steps = total_steps
 
         # load control network
-        self.net = UVNetInDeptCombined.load("resources/networks/demo.pth").get_control_network()
+        self.net = UVNetInDeptCombined.load(
+            "resources/networks/demo.pth"
+        ).get_control_network()
 
     def add_slider(self):
         self.sliders = PositionSliderManager(
