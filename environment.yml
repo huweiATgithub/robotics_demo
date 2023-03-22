@@ -1,0 +1,22 @@
+name: robotics-demo
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.10  # required by drake
+  - pytorch
+  - tqdm
+  - pip
+  - setuptools==65.5.0  # https://github.com/openai/gym/issues/3176
+  - click
+  - pip:
+      - drake
+      - meshcat
+      - gym==0.21.0
+      - stable-baselines3==1.6.2
+  - pinocchio
+  - crocoddyl
+  - numpy
+  - pytest
+  - scipy
