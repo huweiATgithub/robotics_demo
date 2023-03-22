@@ -51,6 +51,7 @@ class Demo:
     def __init__(
         self,
         robot: ModelDefinitionConfig,
+        model_path,
         lower_limits,
         upper_limits,
         total_steps: int,
@@ -131,9 +132,7 @@ class Demo:
         self.n_steps = total_steps
 
         # load control network
-        self.net = UVNetInDeptCombined.load(
-            "resources/networks/demo.pth"
-        ).get_control_network()
+        self.net = UVNetInDeptCombined.load(model_path).get_control_network()
 
     def add_slider(self):
         self.sliders = PositionSliderManager(
