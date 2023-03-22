@@ -2,6 +2,9 @@ import time
 from typing import Optional
 
 import numpy as np
+import torch
+
+
 from pydrake.geometry import Meshcat, MeshcatVisualizer
 from pydrake.systems.framework import DiagramBuilder
 
@@ -9,7 +12,7 @@ from robotics_demo.actors import PositionSliderManager, ButtonActor
 from robotics_demo.configs import ModelDefinitionConfig
 from robotics_demo.robot import Manipulator, ManipulatorDynamics
 from robotics_demo.utils import setup_drake_meshcat_camera
-
+from robotics_demo.network import UVNetInDeptCombined
 
 class StageController:
     def __init__(self, enter, loop, exi):
@@ -128,6 +131,9 @@ class Demo:
         self.dt = dt
         self.n_steps = total_steps
 
+        # load control network
+        self.net = UVNetInDeptCombined.load("resources/networks/demo.pth").get_control_network()
+
     def add_slider(self):
         self.sliders = PositionSliderManager(
             self.meshcat,
@@ -170,9 +176,8 @@ class Demo:
         self.diagram.ForcedPublish(self.context)
         for n in range(self.n_steps):
             # get u from network u(tf, x): use remaining time
-            u = self.dynamics.get_control_gravity_compensation(x) + np.random.randn(
-                *q.shape
-            )
+            state = torch.tensor(np.concatenate([[tf], x], axis=0), dtype=torch.float32)
+            u = self.net(state).detach().numpy()
             x = self.dynamics.step_forward(x, u, self.dt)
             q = x[:7]
             t0 += self.dt
