@@ -6,7 +6,7 @@ def main():
     robot = IIWA14
     q0 = Q0
 
-    demo = Demo(robot, lower_limits=q0 - 0.1, upper_limits=q0 + 0.1)
+    demo = Demo(robot, lower_limits=q0 - 0.1, upper_limits=q0 + 0.1, total_steps=800, dt=0.001)
     demo.run()
 
 

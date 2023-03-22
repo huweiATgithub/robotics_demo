@@ -9,7 +9,7 @@ from pydrake.systems.framework import DiagramBuilder
 
 from robotics_demo.actors import PositionSliderManager, ButtonActor
 from robotics_demo.configs import ModelDefinitionConfig
-from robotics_demo.robot import Manipulator
+from robotics_demo.robot import Manipulator, ManipulatorDynamics
 from robotics_demo.utils import setup_drake_meshcat_camera
 
 
@@ -48,7 +48,7 @@ class StageController:
 
 
 class Demo:
-    def __init__(self, robot: ModelDefinitionConfig, lower_limits, upper_limits):
+    def __init__(self, robot: ModelDefinitionConfig, lower_limits, upper_limits, total_steps: int, dt: float):
         builder = DiagramBuilder()
         self.manipulator: Manipulator = builder.AddSystem(
             Manipulator(0.0),
@@ -109,6 +109,9 @@ class Demo:
         )
 
         self.current_stage = self.drag_stage
+        self.dynamics = ManipulatorDynamics(robot)
+        self.dt = dt
+        self.n_steps = total_steps
 
     def add_slider(self):
         self.sliders = PositionSliderManager(
@@ -145,15 +148,24 @@ class Demo:
 
         self.viz.DeleteRecording()
         self.viz.StartRecording()
-        t = 0.0
-        dt = 1e-3
-        for n in range(100):
-            q = q + np.random.randn(7) * 0.01
-            t += dt
+
+        tf = self.n_steps * self.dt
+        t0 = 0.0
+        self.context.SetTime(t0)
+        self.diagram.ForcedPublish(self.context)
+        for n in range(self.n_steps):
+            # get u from network u(tf, x): use remaining time
+            u = self.dynamics.get_control_gravity_compensation(x) + np.random.randn(*q.shape)
+            x = self.dynamics.step_forward(x, u, self.dt)
+            q = x[:7]
+            t0 += self.dt
+            tf -= self.dt
+
             self.manipulator.set_iiwa_positions(self.manipulator_context, q)
-            self.context.SetTime(t)
+            self.context.SetTime(t0)
+
             self.diagram.ForcedPublish(self.context)
-            time.sleep(0.01)
+
         self.viz.StopRecording()
 
     def reset(self):

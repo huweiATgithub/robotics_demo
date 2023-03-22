@@ -3,6 +3,7 @@ import dataclasses
 from typing import Optional, Union
 
 import numpy as np
+import pinocchio as pin
 from pydrake.geometry import SceneGraph
 from pydrake.math import RigidTransform, RollPitchYaw
 from pydrake.multibody.parsing import Parser
@@ -268,3 +269,31 @@ class Manipulator(Plant):
 
     def get_input_port_actuation(self):
         return self.GetInputPort("iiwa_actuation")
+
+
+class ManipulatorDynamics:
+    def __init__(self, model_def: ModelDefinitionConfig):
+        self.model = pin.buildModelsFromUrdf(
+            model_def.model_file_path,
+            package_dirs=[model_def.dir_containing_pkg],
+        )[0]
+        self.data = pin.createDatas(self.model)[0]
+        self.nq = self.model.nq
+        self.nv = self.model.nv
+        self.nx = self.nq + self.nv
+        self.nu = self.nv
+
+    def get_control_gravity_compensation(self, x: np.ndarray) -> np.ndarray:
+        u_g = pin.computeGeneralizedGravity(
+            self.model,
+            self.data,
+            x[: self.nq],
+        )
+        return u_g
+
+    def step_forward(self, x, u, dt) -> np.ndarray:
+        q, v = x[: self.nq], x[self.nq:]
+        a = pin.aba(self.model, self.data, q, v, u)
+        v_next = v + a * dt
+        q_next = q + v_next * dt
+        return np.r_[q_next, v_next]
