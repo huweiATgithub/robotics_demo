@@ -20,6 +20,17 @@ Q0 = np.array(
         -1.35749704,
     ]
 )
+Q_GOAL = np.array(
+    [
+        2.77363793,
+        0.58416175,
+        1.54129758,
+        -1.702825,
+        -2.1665327,
+        0.08465574,
+        -2.57643323,
+    ]
+)
 
 
 @dataclasses.dataclass
@@ -55,6 +66,16 @@ class ModelDefinitionConfig:
 
 IIWA14 = ModelDefinitionConfig(
     str(MODEL_PATH.joinpath("iiwa14", "urdf", "iiwa14_no_collision.urdf")),
+    str(MODEL_PATH),
+    pkg_dir=str(MODEL_PATH.joinpath("iiwa14")),
+    pkg_name="iiwa14",
+    ee_name="iiwa_link_ee_kuka",
+    weld_info=WeldInfo(
+        "base",
+    ),
+)
+IIWA14_ALPHA = ModelDefinitionConfig(
+    str(MODEL_PATH.joinpath("iiwa14", "urdf", "iiwa14_no_collision_alpha.urdf")),
     str(MODEL_PATH),
     pkg_dir=str(MODEL_PATH.joinpath("iiwa14")),
     pkg_name="iiwa14",

@@ -2,8 +2,6 @@ import time
 from typing import Optional
 
 import numpy as np
-
-
 from pydrake.geometry import Meshcat, MeshcatVisualizer
 from pydrake.systems.framework import DiagramBuilder
 
@@ -48,12 +46,23 @@ class StageController:
 
 
 class Demo:
-    def __init__(self, robot: ModelDefinitionConfig, lower_limits, upper_limits, total_steps: int, dt: float):
+    def __init__(
+        self,
+        robot: ModelDefinitionConfig,
+        lower_limits,
+        upper_limits,
+        total_steps: int,
+        dt: float,
+        target_robot: ModelDefinitionConfig = None,
+        target_q: np.ndarray = None,
+    ):
         builder = DiagramBuilder()
         self.manipulator: Manipulator = builder.AddSystem(
             Manipulator(0.0),
         )
         self.manipulator.add_iiwa(robot)
+        if target_robot:
+            instance = self.manipulator.add_static_iiwa(target_robot)
         self.manipulator.finalize()
 
         self.meshcat = Meshcat()
@@ -72,6 +81,12 @@ class Demo:
         self.diagram = builder.Build()
         self.context = self.diagram.CreateDefaultContext()
         self.manipulator_context = self.manipulator.GetMyContextFromRoot(self.context)
+
+        if target_q is not None and target_robot:
+            # noinspection PyUnboundLocalVariable
+            self.manipulator.set_iiwa_positions_on_model(
+                self.manipulator_context, target_q, instance.model_instance
+            )
 
         self.diagram.ForcedPublish(self.context)
 
@@ -155,7 +170,9 @@ class Demo:
         self.diagram.ForcedPublish(self.context)
         for n in range(self.n_steps):
             # get u from network u(tf, x): use remaining time
-            u = self.dynamics.get_control_gravity_compensation(x) + np.random.randn(*q.shape)
+            u = self.dynamics.get_control_gravity_compensation(x) + np.random.randn(
+                *q.shape
+            )
             x = self.dynamics.step_forward(x, u, self.dt)
             q = x[:7]
             t0 += self.dt

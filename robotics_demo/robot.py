@@ -148,6 +148,9 @@ class Manipulator(Plant):
     def add_iiwa(self, model_def):
         self.iiwa_model = construct_model(model_def, self.plant)
 
+    def add_static_iiwa(self, model_def):
+        return construct_model(model_def, self.plant, name="static_iiwa")
+
     def finalize(self):
         self.plant.Finalize()
         builder = self.get_builder()
@@ -244,8 +247,11 @@ class Manipulator(Plant):
         )
 
     def set_iiwa_positions(self, my_context, q):
+        self.set_iiwa_positions_on_model(my_context, q, self.iiwa_model.model_instance)
+
+    def set_iiwa_positions_on_model(self, my_context, q, model_instance):
         plant_context = self.GetMutableSubsystemContext(self.plant, my_context)
-        self.plant.SetPositions(plant_context, self.iiwa_model.model_instance, q)
+        self.plant.SetPositions(plant_context, model_instance, q)
 
     def get_iiwa_position(self, my_context):
         plant_context = self.GetSubsystemContext(self.plant, my_context)
@@ -292,7 +298,7 @@ class ManipulatorDynamics:
         return u_g
 
     def step_forward(self, x, u, dt) -> np.ndarray:
-        q, v = x[: self.nq], x[self.nq:]
+        q, v = x[: self.nq], x[self.nq :]
         a = pin.aba(self.model, self.data, q, v, u)
         v_next = v + a * dt
         q_next = q + v_next * dt
