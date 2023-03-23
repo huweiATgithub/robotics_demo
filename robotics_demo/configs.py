@@ -5,7 +5,8 @@ import importlib_resources
 import numpy as np
 
 RESOURCES_PATH = importlib_resources.files("robotics_demo.resources")
-MODEL_PATH = RESOURCES_PATH.joinpath("models")
+MODEL_PATH = RESOURCES_PATH / "models"
+NETWORK_PATH = RESOURCES_PATH / "networks"
 
 Q0 = np.array(
     [
