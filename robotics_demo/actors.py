@@ -1,7 +1,6 @@
 import copy
 
 import numpy as np
-import pinocchio
 from pydrake.geometry import Meshcat
 
 from robotics_demo.robot import Manipulator
@@ -35,7 +34,6 @@ class PositionSliderManager:
         meshcat: Meshcat,
         manipulator: Manipulator,
         manipulator_context,
-        manipulator_pin: pinocchio.Model = None,
         *,
         lower_limits: np.ndarray = None,
         upper_limits: np.ndarray = None,
@@ -45,10 +43,10 @@ class PositionSliderManager:
         self.manipulator_context = manipulator_context
         self.lower_limits = lower_limits
         self.upper_limits = upper_limits
-        if self.lower_limits is None and manipulator_pin is not None:
-            self.lower_limits = manipulator_pin.model.lowerPositionLimit
-        if self.upper_limits is None and manipulator_pin is not None:
-            self.upper_limits = manipulator_pin.model.upperPositionLimit
+        if self.lower_limits is None:
+            self.lower_limits = self.manipulator.get_positions_lower_limits()
+        if self.upper_limits is None:
+            self.upper_limits = self.manipulator.get_positions_upper_limits()
         self.sliders = self.setup_sliders()
 
     def setup_sliders(self):

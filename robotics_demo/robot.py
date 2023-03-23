@@ -257,6 +257,19 @@ class Manipulator(Plant):
         plant_context = self.GetSubsystemContext(self.plant, my_context)
         return self.plant.GetPositions(plant_context, self.iiwa_model.model_instance)
 
+    def get_positions_lower_limits(self) -> np.ndarray:
+        # We assume the lower-limits we are querying is the first n positions
+        # In-fact, in drake, they internally have a MultibodyTree
+        # which has GetPositionsFromArray method to get the positions of a particular model instance
+        return self.plant.GetPositionLowerLimits()[
+            : self.plant.num_positions(self.iiwa_model.model_instance)
+        ]
+
+    def get_positions_upper_limits(self) -> np.ndarray:
+        return self.plant.GetPositionUpperLimits()[
+            : self.plant.num_positions(self.iiwa_model.model_instance)
+        ]
+
     def get_multibody_plant(self):
         return self.plant
 
