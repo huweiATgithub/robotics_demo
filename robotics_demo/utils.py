@@ -16,3 +16,14 @@ def setup_drake_meshcat_camera(meshcat_drake: Meshcat):
         rot_rigid @ trans_rigid,
     )
     meshcat_drake.SetProperty("/Cameras/default/rotated/<object>", "zoom", 1.5)
+
+
+def get_ip_addr() -> str:
+    import requests
+
+    response = requests.get("https://ifconfig.me/ip/", timeout=10)
+    if response.status_code != 200:
+        raise requests.exceptions.HTTPError(
+            f"{response.status_code} - {response.reason}"
+        )
+    return response.text

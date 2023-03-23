@@ -2,6 +2,7 @@ import time
 from typing import Optional
 
 import numpy as np
+import requests
 import torch
 from pydrake.geometry import Meshcat, MeshcatVisualizer
 from pydrake.systems.framework import DiagramBuilder
@@ -10,7 +11,7 @@ from robotics_demo.actors import PositionSliderManager, ButtonActor
 from robotics_demo.configs import ModelDefinitionConfig
 from robotics_demo.network import UVNetInDeptCombined
 from robotics_demo.robot import Manipulator, ManipulatorDynamics
-from robotics_demo.utils import setup_drake_meshcat_camera
+from robotics_demo.utils import setup_drake_meshcat_camera, get_ip_addr
 
 
 class StageController:
@@ -70,6 +71,11 @@ class Demo:
         self.manipulator.finalize()
 
         self.meshcat = Meshcat(port)
+        try:
+            ip_addr = get_ip_addr()
+            print(f"Meshcat listening for connections at: http://{ip_addr}:{port}")
+        except requests.exceptions.HTTPError:
+            print(f"Cannot determine IP address. Please lookout your IP address.")
         setup_drake_meshcat_camera(
             self.meshcat,
         )
