@@ -58,6 +58,7 @@ class Demo:
         dt: float,
         target_robot: ModelDefinitionConfig = None,
         target_q: np.ndarray = None,
+        port: int = 7000,
     ):
         builder = DiagramBuilder()
         self.manipulator: Manipulator = builder.AddSystem(
@@ -68,7 +69,7 @@ class Demo:
             instance = self.manipulator.add_static_iiwa(target_robot)
         self.manipulator.finalize()
 
-        self.meshcat = Meshcat()
+        self.meshcat = Meshcat(port)
         setup_drake_meshcat_camera(
             self.meshcat,
         )

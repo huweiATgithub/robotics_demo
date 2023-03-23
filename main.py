@@ -16,6 +16,7 @@ def main():
         dt=0.001,
         target_robot=IIWA14_ALPHA,
         target_q=Q_GOAL,
+        port=7000,
     )
     demo.run()
 
