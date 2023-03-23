@@ -1,12 +1,10 @@
 import dataclasses
-import pathlib
 from typing import Tuple
 
+import importlib_resources
 import numpy as np
 
-PKG_PATH = pathlib.Path(__file__).parent
-PROJECT_PATH = PKG_PATH.parent
-RESOURCES_PATH = PROJECT_PATH.joinpath("resources")
+RESOURCES_PATH = importlib_resources.files("robotics_demo.resources")
 MODEL_PATH = RESOURCES_PATH.joinpath("models")
 
 Q0 = np.array(

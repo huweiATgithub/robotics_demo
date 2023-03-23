@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61", "setuptools-scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robotics_demo"
+description = "Demos for robotics"
+authors = [
+    { name = "Wei Hu", email = "weihu.math@gmail.com" },
+    { name = "Yue Zhao", email = "me@y-zh.com" }
+]
+readme = "README.md"
+requires-python = "~=3.8"
+dynamic = ["version"]
+dependencies = ["importlib-resources>=1.1.0"]
+
+[project.urls]
+"Homepage" = "https://github.com/huweiATgithub/robotics_demo"
+"Bug Tracker" = "https://github.com/huweiATgithub/robotics_demo/issues"
+
+[tool.setuptools_scm]
+write_to = "robotics_demo/_version.py"
+
+
+# The following setup does not automatically find subpackages in robotics_demo (in some machine).
+#[tool.setuptools]
+#package-dir = {""="."}
+#packages = ["robotics_demo", "robotics_demo.resources"]
+
+[tool.setuptools.packages.find]
+# The following config are not required. However, we specify them for clear organization.
+# https://setuptools.pypa.io/en/stable/userguide/package_discovery.html
+where = ["."]
+include = ["robotics_demo"]
+namespaces = true
+
+
+# https://setuptools.pypa.io/en/stable/userguide/datafiles.html#non-package-data-files
+# Setuptools does NOT support Non-Package Data Files.
+# According to #subdirectory-for-data-files, we make data files as a namespaced subpackage. (which are default options)
+[tool.setuptools.package-data]
+"robotics_demo.resources" = ["**/*"]
