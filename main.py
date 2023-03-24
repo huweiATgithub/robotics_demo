@@ -1,11 +1,17 @@
-from robotics_demo.configs import Q0, IIWA14, IIWA14_ALPHA, Q_GOAL, NETWORK_PATH
+from robotics_demo.configs import (
+    Q0,
+    IIWA14,
+    IIWA14_ALPHA,
+    Q_GOAL,
+    NETWORK_PATH,
+)
 from robotics_demo.demo import Demo
 
 
 def main():
     robot = IIWA14
     q0 = Q0
-    model_path = NETWORK_PATH / "demo.pth"
+    model_path = NETWORK_PATH / "demo_good.pth"
 
     demo = Demo(
         robot,
