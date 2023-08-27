@@ -89,6 +89,9 @@ class Demo:
         self.context = self.diagram.CreateDefaultContext()
         self.manipulator_context = self.manipulator.GetMyContextFromRoot(self.context)
 
+        self.manipulator.set_iiwa_positions(
+            self.manipulator_context, (lower_limits + upper_limits) / 2
+        )
         if target_q is not None and target_robot:
             # noinspection PyUnboundLocalVariable
             self.manipulator.set_iiwa_positions_on_model(
