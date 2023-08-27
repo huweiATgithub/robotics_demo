@@ -5,7 +5,7 @@ from robotics_demo.configs import (
     Q_GOAL,
     NETWORK_PATH,
 )
-from robotics_demo.demo import Demo
+from robotics_demo.demo import DemoNetworkController
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
     q0 = Q0
     model_path = NETWORK_PATH / "demo_good.pth"
 
-    demo = Demo(
+    demo = DemoNetworkController(
         robot,
         model_path=model_path,
         lower_limits=q0 - 0.1,

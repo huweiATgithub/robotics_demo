@@ -1,17 +1,16 @@
+import abc
 import time
 from typing import Optional
 
 import numpy as np
 import requests
-import torch
 from pydrake.geometry import Meshcat, MeshcatVisualizer
 from pydrake.systems.framework import DiagramBuilder
 
 from robotics_demo.actors import PositionSliderManager, ButtonActor
 from robotics_demo.configs import ModelDefinitionConfig
-from robotics_demo.network import UVNetInDeptCombined
 from robotics_demo.robot import Manipulator, ManipulatorDynamics
-from robotics_demo.utils import setup_drake_meshcat_camera, get_ip_addr
+from robotics_demo.utils import get_ip_addr, setup_drake_meshcat_camera
 
 
 class StageController:
@@ -52,10 +51,8 @@ class Demo:
     def __init__(
         self,
         robot: ModelDefinitionConfig,
-        model_path,
         lower_limits,
         upper_limits,
-        total_steps: int,
         dt: float,
         target_robot: ModelDefinitionConfig = None,
         target_q: np.ndarray = None,
@@ -136,10 +133,6 @@ class Demo:
         self.current_stage = self.drag_stage
         self.dynamics = ManipulatorDynamics(robot)
         self.dt = dt
-        self.n_steps = total_steps
-
-        # load control network
-        self.net = UVNetInDeptCombined.load(model_path).get_control_network()
 
     def add_slider(self):
         self.sliders = PositionSliderManager(
@@ -152,7 +145,7 @@ class Demo:
 
     def add_release_button(self):
         self.release_button = ButtonActor(
-            self.meshcat, "Release", actor=self.control_by_network
+            self.meshcat, "Release", actor=self.apply_control_and_record
         )
 
     def remove_release_button(self):
@@ -170,32 +163,22 @@ class Demo:
         self.sliders.remove_sliders()
         self.sliders = None
 
-    def control_by_network(self):
-        q = self.manipulator.get_iiwa_position(self.manipulator_context)
-        x = np.r_[q, np.zeros_like(q)]
-
+    def apply_control_and_record(self):
         self.viz.DeleteRecording()
         self.viz.StartRecording()
-
-        tf = self.n_steps * self.dt
-        t0 = 0.0
-        self.context.SetTime(t0)
-        self.diagram.ForcedPublish(self.context)
-        for n in range(self.n_steps):
-            # get u from network u(tf, x): use remaining time
-            state = torch.tensor(np.concatenate([[tf], x], axis=0), dtype=torch.float32)
-            u = self.net(state).detach().numpy()
-            x = self.dynamics.step_forward(x, u, self.dt)
-            q = x[:7]
-            t0 += self.dt
-            tf -= self.dt
-
-            self.manipulator.set_iiwa_positions(self.manipulator_context, q)
-            self.context.SetTime(t0)
-
-            self.diagram.ForcedPublish(self.context)
-
+        q = self.manipulator.get_iiwa_position(self.manipulator_context)
+        x = np.r_[q, np.zeros_like(q)]
+        self.apply_control(x)
         self.viz.StopRecording()
+
+    def record_a_step(self, t, q):
+        self.manipulator.set_iiwa_positions(self.manipulator_context, q)
+        self.context.SetTime(t)
+        self.diagram.ForcedPublish(self.context)
+
+    @abc.abstractmethod
+    def apply_control(self, x: np.ndarray):
+        pass
 
     def reset(self):
         pass
