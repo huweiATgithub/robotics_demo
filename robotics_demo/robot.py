@@ -1,6 +1,6 @@
 import abc
 import dataclasses
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 import numpy as np
 import pinocchio as pin
@@ -316,3 +316,21 @@ class ManipulatorDynamics:
         v_next = v + a * dt
         q_next = q + v_next * dt
         return np.r_[q_next, v_next]
+
+    def get_derivative(
+        self, x: np.ndarray, u: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        q, v = x[:self.nq], x[self.nq:]
+        pin.computeABADerivatives(self.model, self.data, q, v, u)
+        df_dx = np.empty(shape=(self.nx, self.nx), dtype=x.dtype)
+        df_du = np.zeros(shape=(self.nx, self.nu), dtype=x.dtype)
+
+        df_dx[: self.nq, : self.nq] = 0.0
+        df_dx[: self.nq, self.nq :] = np.identity(self.nq)
+        df_dx[self.nq :, : self.nq] = self.data.ddq_dq
+        df_dx[self.nq :, self.nq :] = self.data.ddq_dv
+
+        df_du[: self.nq, :] = 0.0
+        df_du[self.nq :, :] = self.data.Minv
+
+        return df_dx, df_du
